@@ -13,12 +13,7 @@
 \usepackage{xcolor}
 \usepackage{animate}
 \usepackage{subcaption}
-\usetikzlibrary{shapes, shapes.geometric, arrows, arrows.meta, positioning, shadows, fit, calc}
-
-\definecolor{softblue}{RGB}{79, 117, 139}   % Muted Slate Blue
-\definecolor{softred}{RGB}{186, 92, 92}     % Muted Coral/Rose
-\definecolor{softgreen}{RGB}{92, 138, 92}   % Sage Green
-\definecolor{arrowgray}{RGB}{100, 100, 100} % Dark Grey for arrows
+\usetikzlibrary{shapes, shapes.geometric, shapes.misc, arrows, arrows.meta, positioning, shadows, fit, calc}
 
 % \newenvironment{banner}{%
 %   \begin{columns}[T]
@@ -100,51 +95,49 @@
 % \end{banner}
 \end{frame}
 
-\begin{frame}{Parts of an Automatic Robot}
-	\begin{itemize}
-		\item \textbf{Sensors}
-		\item \textbf{Control Systems}(Algorithms)
-		\item \textbf{Mechanical Actuation}
-	\end{itemize}
-	Today, we are only concerned with the data acquision by the \textit{sensors} as well as the \textit{control} systems that will be used to control the robot.
-\end{frame}
+\begin{frame}{How an automatic robot works}
+	\definecolor{softblue}{RGB}{79, 117, 139}   % Muted Slate Blue
+	\definecolor{softred}{RGB}{186, 92, 92}     % Muted Coral/Rose
+	\definecolor{softgreen}{RGB}{92, 138, 92}   % Sage Green
+	\definecolor{arrowgray}{RGB}{100, 100, 100} % Dark Grey for arrows
 
+	\begin{figure}
+	    \centering
+	    \resizebox{0.85\textwidth}{!}{%
+		    \begin{tikzpicture}[
+		        node distance=2.5cm,
+		        font=\sffamily\bfseries,
+		        component/.style={
+		            circle,
+		            minimum size=3cm,
+		            text width=2.5cm,
+		            align=center,
+		            draw=none,
+		            text=white,
+		        },
+		        flow/.style={
+		            -Stealth, 
+		            line width=2pt, 
+		            draw=arrowgray,
+		            bend left=45
+		        },
+		        labeltext/.style={
+		            text=arrowgray,
+		            font=\sffamily\footnotesize,
+		            align=center
+		        }
+		    ]
+		        \node[component, fill=softblue] (control) at (0, 0) {Control\\Systems};
+		        \node[component, fill=softred] (actuation) at (3, -3.5) {Mechanical\\Actuation};
+		        \node[component, fill=softgreen] (sensors) at (-3, -3.5) {Sensors};
 
-\begin{frame}{Robot Component Interaction}
-    \centering
-    \resizebox{0.85\textwidth}{!}{%
-	    \begin{tikzpicture}[
-	        node distance=2.5cm,
-	        font=\sffamily\bfseries,
-	        component/.style={
-	            circle,
-	            minimum size=3cm,
-	            text width=2.5cm,
-	            align=center,
-	            draw=none,
-	            text=white,
-	        },
-	        flow/.style={
-	            -Stealth, 
-	            line width=2pt, 
-	            draw=arrowgray,
-	            bend left=45
-	        },
-	        labeltext/.style={
-	            text=arrowgray,
-	            font=\sffamily\footnotesize,
-	            align=center
-	        }
-	    ]
-	        \node[component, fill=softblue] (control) at (0, 0) {Control\\Systems};
-	        \node[component, fill=softred] (actuation) at (3, -3.5) {Mechanical\\Actuation};
-	        \node[component, fill=softgreen] (sensors) at (-3, -3.5) {Sensors};
-
-	        \draw[flow] (control) to node[labeltext, midway, sloped, above] {Commands} (actuation);
-	        \draw[flow] (actuation) to node[labeltext, midway, sloped, below] {Motion} (sensors);
-	        \draw[flow] (sensors) to node[labeltext, midway, sloped, above] {Feedback Data} (control);
-	    \end{tikzpicture}
-    }
+		        \draw[flow] (control) to node[labeltext, midway, sloped, above] {Commands} (actuation);
+		        \draw[flow] (actuation) to node[labeltext, midway, sloped, below] {Motion} (sensors);
+		        \draw[flow] (sensors) to node[labeltext, midway, sloped, above] {Feedback Data} (control);
+		    \end{tikzpicture}
+	    }
+		\caption{The parts of an automatic robot interacting with one another}
+	\end{figure}
 \end{frame}
 
 \section{The IR Sensor}
@@ -162,20 +155,86 @@
 	\end{itemize}
 \end{frame}
 
-\begin{frame}{Line Detection}
-	The key insight to using this sensor for detecting a line is that the amount of light that gets reflected back depends on the reflectivity of the surface. The reflectivity in turn is dependent on the color of the surface.
-	\begin{itemize}
-		\item Light surfaces reflect more light back.
-		\item Dark surfaces reflect less light back.
-	\end{itemize}
-\end{frame}
+\begin{frame}{Line Detection Working Principle}
+    \definecolor{softblue}{RGB}{79, 117, 139}   
+    \definecolor{softred}{RGB}{200, 100, 100}   
+    \definecolor{floorwhite}{RGB}{240, 240, 240}
+    \definecolor{floorblack}{RGB}{50, 50, 50}   
+    \definecolor{textgray}{RGB}{80, 80, 80}     
 
-\begin{frame}{Interfacing with the IR sensor}
-	\begin{itemize}
-		\item Connect \textbf{VCC} of the IR sensor to 5V of the ESP32.
-		\item Connect \textbf{GND} of the IR sensor to GND of the ESP32.
-		\item Connect \textbf{OUT} pin of the IR sensor to any digital input pin on the ESP32.
-	\end{itemize}
+    \centering
+    
+    \resizebox{\textwidth}{!}{%
+    \begin{tikzpicture}[
+        font=\sffamily,
+        % Styles
+        sensorbody/.style={
+            rectangle, 
+            draw=softblue!80!black, 
+            fill=softblue!20, 
+            thick, 
+            minimum width=3cm, 
+            minimum height=1.5cm, 
+            rounded corners=3pt
+        },
+        diode/.style={
+            circle,
+            draw=black!70,
+            fill=white,
+            minimum size=0.5cm,
+            inner sep=0pt
+        },
+        beam/.style={
+            -{Stealth[scale=1.2]},
+            draw=softred, 
+            line width=2pt,
+            dashed
+        }
+    ]
+
+        \node[sensorbody] (sensor1) at (0, 0) {};
+        
+        \node[text=softblue!100!black, font=\bfseries] at ($(sensor1.north)+(0,-0.3)$) {IR Module};
+
+        \node[diode, label={center:\tiny Tx}] (tx1) at ($(sensor1.south)+(-0.8, 0.4)$) {};
+        \node[diode, label={center:\tiny Rx}] (rx1) at ($(sensor1.south)+(0.8, 0.4)$) {};
+
+        \fill[floorwhite] (-2, -3) rectangle (2, -3.5);
+        \draw[gray!50, thick] (-2, -3) -- (2, -3);
+        \node[below, textgray] at (0, -3.5) {\textbf{White Surface}};
+
+        \draw[beam] (tx1.south) -- (-0.8, -3) node[midway, left, font=\scriptsize, text=textgray, align=right] {Emitter};
+        \draw[beam] (-0.8, -3) -- (rx1.south) node[midway, right, font=\scriptsize, text=textgray, align=left] {Receiver};
+
+        \node[align=center, text=softblue!100, above=0.2cm of sensor1] {\textbf{Signal Detected}\\ \scriptsize (Logic 0 / Low)};
+
+        \begin{scope}[xshift=7cm]
+            
+            \node[sensorbody] (sensor2) at (0, 0) {};
+            
+            \node[text=softblue!100!black, font=\bfseries] at ($(sensor2.north)+(0,-0.3)$) {IR Module};
+
+            \node[diode, label={center:\tiny Tx}] (tx2) at ($(sensor2.south)+(-0.8, 0.4)$) {};
+            \node[diode, label={center:\tiny Rx}] (rx2) at ($(sensor2.south)+(0.8, 0.4)$) {};
+
+            \fill[floorwhite] (-2, -3) rectangle (2, -3.5);
+            \fill[floorblack] (-1.2, -3) rectangle (1.2, -3.5); % Black line
+            \draw[gray!50, thick] (-2, -3) -- (2, -3);
+            \node[below, floorblack] at (0, -3.5) {\textbf{Black Line}};
+
+            \draw[beam] (tx2.south) -- (-0.8, -3);
+            
+            \node[star, star points=5, fill=softred, inner sep=1.5pt] at (-0.8, -3) {};
+            \node[right, font=\scriptsize, text=textgray, align=left] at (-0.6, -2.5) {Absorbed};
+
+            \node[align=center, text=softred, above=0.2cm of sensor2] {\textbf{No Signal}\\ \scriptsize (Logic 1 / High)};
+
+        \end{scope}
+
+        \draw[dashed, gray!30, thick] (3.5, 1.5) -- (3.5, -4);
+
+    \end{tikzpicture}
+    }
 \end{frame}
 
 \begin{frame}{Interfacing with the IR sensor}
@@ -186,12 +245,20 @@
 	\end{itemize}
 \end{frame}
 
+\begin{frame}{Interfacing with the IR sensor}
+	\begin{figure}[h]
+		\centering
+		\includegraphics[height=0.8\textheight]{esp32_one_ir.png}
+		\caption{Wiring for interfacing with \textbf{IR} sensor}
+	\end{figure}
+\end{frame}
+
 \begin{frame}[fragile]{Code Snippet}
 	\begin{minted}{C++}
 int irPin = 2;  // Digital pin connected to IR sensor
 
 void setup() {
-  pinMode(irPin, INPUT_PULLUP);
+  pinMode(irPin, INPUT);
   Serial.begin(9600);
 }
 
@@ -203,7 +270,7 @@ void loop() {
 	\end{minted}
 \end{frame}
 
-\section{Robot Overview}
+\section{The Line Follower}
 \begin{frame}{System Architecture}
     \centering
     \resizebox{\textwidth}{!}{
@@ -259,11 +326,120 @@ void loop() {
 	}
 \end{frame}
 
-\begin{frame}{Data Acquisition}
-	\begin{itemize}
-		\item We should acquire and store the \textit{feedback signals} from both IR sensors into their own variables.
-		\item Then by knowing which sensor's data (\textit{left or right}) a variable refers to, we can know which side of the line we are on.
-	\end{itemize}
+\begin{frame}{Side Detection Logic}
+    \definecolor{nordBlue}{RGB}{94, 129, 172}    
+    \definecolor{nordCyan}{RGB}{136, 192, 208}   
+    \definecolor{nordGreen}{RGB}{163, 190, 140}  
+    \definecolor{nordOrange}{RGB}{208, 135, 112} 
+    \definecolor{nordDark}{RGB}{46, 52, 64}      
+
+    \centering
+    
+    \resizebox{!}{0.85\textheight}{%
+    \begin{tikzpicture}[
+        node distance=0.8cm and 1.5cm,
+        font=\sffamily\small,
+        base/.style={
+            thick,
+            draw=nordDark,
+            text=nordDark,
+            align=center,
+            drop shadow={opacity=0.3, shadow xshift=2pt, shadow yshift=-2pt}
+        },
+        startstop/.style={
+            base,
+            rectangle, 
+            rounded corners=0.5cm, 
+            fill=nordBlue, 
+            text=white,
+            minimum width=2.5cm, 
+            minimum height=1cm,
+            font=\bfseries
+        },
+        process/.style={
+            base,
+            rectangle, 
+            rounded corners=3pt,
+            fill=nordCyan!30, 
+            text width=3cm, 
+            minimum height=0.8cm
+        },
+        io/.style={
+            base,
+            trapezium, 
+            trapezium left angle=75, 
+            trapezium right angle=105, 
+            fill=nordGreen!40, 
+            text width=2.5cm, 
+            minimum height=0.8cm
+        },
+        decision/.style={
+            base,
+            diamond, 
+            aspect=2, 
+            fill=nordOrange!40, 
+            text width=2cm, 
+            inner sep=0pt,
+            font=\footnotesize\bfseries
+        },
+        line/.style={
+            draw=nordDark,
+            thick,
+            -{Stealth[scale=1.0]},
+            rounded corners=4pt
+        },
+        wire/.style={
+            draw=nordDark,
+            thick,
+            rounded corners=4pt
+        },
+        connector/.style={
+            circle,
+            fill=nordDark,
+            inner sep=1.5pt,
+            draw=none
+        }
+    ]
+        \node (start) [startstop] {Start};
+        
+        \node (setup) [process, below=of start] {Setup Pins\\\& Serial};
+        \node (read) [io, below=of setup] {Read Sensors\\ \scriptsize \texttt{ir1, ir2}};
+        
+        \node (dec1) [decision, below=of read] {(0,1)};
+        \node (dec2) [decision, below=of dec1, yshift=-0.5cm] {(1, 0)};
+
+        \node (delay) [process, below=of dec2, yshift=-0.5cm] {Delay 100ms};
+
+        \node (print_right) [io, right=of dec1] {Print\\"Right Side"};
+        \node (print_left) [io, right=of dec2] {Print\\"Left Side"};
+
+        \draw [line] (start) -- (setup);
+        \draw [line] (setup) -- (read);
+        \draw [line] (read) -- (dec1);
+
+        \draw [line] (dec1.east) -- node[above, font=\scriptsize] {Yes} (print_right.west);
+        \draw [line] (dec1.south) -- node[left, font=\scriptsize] {No} (dec2.north);
+
+        \draw [line] (dec2.east) -- node[above, font=\scriptsize] {Yes} (print_left.west);
+        \draw [line] (dec2.south) -- node[left, font=\scriptsize] {No} (delay.north);
+
+        \coordinate (rail_x) at ($(print_right.east) + (0.8, 0)$);
+
+        \draw [wire] (print_right.east) -- (rail_x |- print_right.east);
+        
+        \draw [wire] (print_left.east) -- (rail_x |- print_left.east);
+
+        \draw [line] (rail_x |- print_right.east) -- (rail_x |- delay.east) -- (delay.east);
+
+        \node [connector] at (rail_x |- print_left.east) {};
+
+        \coordinate (loop_turn) at ($(read.west) - (1.2, 0)$);
+        \draw [wire] (delay.south) -- ++(0,-0.4) -| (loop_turn);
+        
+        \draw [line, rounded corners=0pt] (loop_turn) -- (read.west);
+
+    \end{tikzpicture}
+    }
 \end{frame}
 
 \begin{frame}[fragile]{Code Snippet}
@@ -275,8 +451,8 @@ int ir1 = 2;  // Digital pin connected to the left IR sensor
 int ir2 = 6;  // Digital pin connected to the right IR sensor
 
 void setup() {
-  pinMode(ir1, INPUT_PULLUP);
-  pinMode(ir2, INPUT_PULLUP);
+  pinMode(ir1, INPUT);
+  pinMode(ir2, INPUT);
   Serial.begin(9600);
 }
 
